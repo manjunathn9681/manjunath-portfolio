@@ -36,7 +36,7 @@ export default function Preloader() {
     >
       {/* Logo */}
       <img
-        src="/logo.jpeg"
+        src={`${import.meta.env.BASE_URL}logo.jpeg`}
         alt="MANJUNATH"
         className="h-14 w-auto object-contain rounded-full"
         style={{ filter: "drop-shadow(0 0 18px rgba(59,130,246,0.4))", border: "1px solid rgba(59,130,246,0.3)" }}

@@ -82,7 +82,7 @@ export default function Navbar() {
             aria-label="Manjunath N. Home"
           >
             <img
-              src="/logo.jpeg"
+              src={`${import.meta.env.BASE_URL}logo.jpeg`}
               alt="MANJUNATH logo"
               className="h-8 w-auto object-contain rounded-full transition-opacity duration-300 group-hover:opacity-80"
               loading="eager"
@@ -147,7 +147,7 @@ export default function Navbar() {
         }`}
         style={{ background: "rgba(5,5,5,0.97)", backdropFilter: "blur(40px)" }}
       >
-        <img src="/logo.jpeg" alt="MANJUNATH" className="h-12 w-auto mb-12 opacity-80 rounded-full" style={{ border: "1px solid rgba(59,130,246,0.3)" }} />
+        <img src={`${import.meta.env.BASE_URL}logo.jpeg`} alt="MANJUNATH" className="h-12 w-auto mb-12 opacity-80 rounded-full" style={{ border: "1px solid rgba(59,130,246,0.3)" }} />
         <ul className="flex flex-col items-center gap-6">
           {links.map((link, i) => (
             <li

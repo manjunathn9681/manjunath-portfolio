@@ -28,7 +28,7 @@ const ACTIVITIES = [
     ],
     extensions: ["GitLens", "Live Share", "Prettier", "ESLint"],
     outcome: "A fully configured, productive development environment ready for all coding activities.",
-    github: null,
+    github: "https://github.com/manjunathn9681/Hello-World",
     seq: 1,
   },
   {
@@ -52,7 +52,7 @@ const ACTIVITIES = [
     ],
     extensions: ["git init", "git add", "git commit", "git push"],
     outcome: "First remote repository live on GitHub — establishing a version control habit from day one.",
-    github: "[ADD GITHUB LINK]",
+    github: "https://github.com/manjunathn9681/Hello-World",
     seq: 2,
   },
   {
@@ -79,7 +79,7 @@ const ACTIVITIES = [
     ],
     extensions: ["GitLens", "Live Share"],
     outcome: "Experienced real-time collaboration and gained visibility into project Git history at every line of code.",
-    github: null,
+    github: "https://github.com/manjunathn9681/Hello-World",
     seq: 3,
   },
   {
@@ -103,7 +103,7 @@ const ACTIVITIES = [
     ],
     extensions: ["GitHub", "Git", "Markdown", "VS Code"],
     outcome: "A living repository that tracks algorithmic learning progress — available for review and future growth.",
-    github: "[ADD GITHUB LINK]",
+    github: "https://github.com/manjunathn9681/leetcode-solutions",
     seq: 4,
   },
 ];
@@ -325,8 +325,46 @@ function MissionCard({
         {/* Sequence indicator */}
         <SequenceIndicator seq={activity.seq} total={4} />
 
+        {/* GitHub link — always visible */}
+        {activity.github && (
+          <a
+            href={activity.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 mt-4 group/gh"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "rgba(59,130,246,0.08)",
+              border: "1px solid rgba(59,130,246,0.2)",
+              borderRadius: "10px",
+              padding: "8px 14px",
+              textDecoration: "none",
+              transition: "all 0.3s ease",
+              width: "fit-content",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(59,130,246,0.15)";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(59,130,246,0.4)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(59,130,246,0.08)";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(59,130,246,0.2)";
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#3B82F6">
+              <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
+            </svg>
+            <span
+              className="text-[11px] tracking-[0.15em] uppercase font-semibold"
+              style={{ color: "#3B82F6" }}
+            >
+              View on GitHub →
+            </span>
+          </a>
+        )}
+
         {/* Expand hint */}
-        <div className="flex items-center gap-2 mt-4">
+        <div className="flex items-center gap-2 mt-3">
           <div
             className="w-5 h-5 rounded-full flex items-center justify-center transition-all duration-300"
             style={{
@@ -429,26 +467,25 @@ function MissionCard({
             <p className="text-[13px] text-[#A1A1AA] leading-relaxed">{activity.outcome}</p>
           </div>
 
-          {/* GitHub link */}
+          {/* GitHub link in expanded panel */}
           {activity.github && (
-            <div className="flex items-center gap-3 pt-4">
+            <a
+              href={activity.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 pt-4 group/gh"
+              onClick={(e) => e.stopPropagation()}
+              style={{ textDecoration: "none" }}
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(59,130,246,0.7)">
                 <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
               </svg>
-              {activity.github.startsWith("[") ? (
-                <span className="text-[11px] tracking-[0.15em] uppercase text-[#A1A1AA] italic">{activity.github}</span>
-              ) : (
-                <a
-                  href={activity.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] tracking-[0.15em] uppercase text-[#3B82F6] hover:text-[#60A5FA] transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  View on GitHub →
-                </a>
-              )}
-            </div>
+              <span
+                className="text-[11px] tracking-[0.15em] uppercase text-[#3B82F6] hover:text-[#60A5FA] transition-colors"
+              >
+                View on GitHub →
+              </span>
+            </a>
           )}
         </div>
       </div>

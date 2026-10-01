@@ -198,7 +198,7 @@ export default function About() {
       id="about"
       ref={sectionRef}
       className="relative bg-[#050505] overflow-hidden"
-      style={{ minHeight: "100svh", paddingTop: "6rem", paddingBottom: "6rem" }}
+      style={{ minHeight: "100svh", paddingTop: "8rem", paddingBottom: "6rem" }}
     >
       {/* L1 – base vignette */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0"
@@ -240,7 +240,7 @@ export default function About() {
       <div
         ref={coreRef}
         className="pointer-events-none absolute z-[10] will-change-transform"
-        style={{ left: "50%", top: "50%", transform: "translate(-50%, -48%)", width: "min(72vw, 560px)", aspectRatio: "1/1" }}
+        style={{ left: "50%", top: "52%", transform: "translate(-50%, -48%)", width: "min(65vw, 480px)", aspectRatio: "1/1" }}
       >
         {/* Atmospheric glow behind core */}
         <div aria-hidden className="absolute inset-[-20%] rounded-full"
@@ -338,10 +338,10 @@ export default function About() {
           ref={infoPanelRef}
           className="pointer-events-none absolute z-[25] hidden md:block"
           style={{
-            bottom: "8%",
+            bottom: "6%",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "min(90%, 520px)",
+            width: "min(88%, 480px)",
           }}
         >
           <div
@@ -417,13 +417,13 @@ export default function About() {
         {/* Heading */}
         <div ref={headingRef} data-anim className="text-center mb-4" style={{ opacity: 0 }}>
           <p style={{ fontSize: "10px", letterSpacing: "0.45em", textTransform: "uppercase", color: "#A1A1AA", marginBottom: "12px" }}>About Me</p>
-          <h2 style={{ fontSize: "clamp(2.4rem, 7vw, 5.5rem)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05, background: "linear-gradient(180deg, #fff 55%, rgba(255,255,255,0.55) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+          <h2 style={{ fontSize: "clamp(2.4rem, 7vw, 4.5rem)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05, background: "linear-gradient(180deg, #fff 55%, rgba(255,255,255,0.55) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
             A Little About<br />Manjunath.
           </h2>
         </div>
 
         {/* Spacer for Activity Core visual */}
-        <div style={{ height: "min(48vw, 420px)" }} />
+        <div style={{ height: "min(42vw, 360px)" }} />
 
         {/* Interaction hint (desktop) */}
         <p className="hidden md:block text-center mb-4" style={{ fontSize: "9px", letterSpacing: "0.3em", color: "rgba(96,165,250,0.5)", textTransform: "uppercase" }}>

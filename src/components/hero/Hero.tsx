@@ -203,7 +203,7 @@ export default function Hero() {
 
           <MagneticDepthPortrait
             zoneRef={zone}
-            src="/portrait.webp"
+            src={`${import.meta.env.BASE_URL}portrait.webp`}
             alt="Manjunath N."
             className="w-full max-w-[320px] md:max-w-[460px] lg:max-w-[520px]"
           />

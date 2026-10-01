@@ -17,7 +17,7 @@ export default function Footer() {
           {/* Logo + name */}
           <div className="flex flex-col items-center md:items-start gap-4">
             <img
-              src="/logo.jpeg"
+              src={`${import.meta.env.BASE_URL}logo.jpeg`}
               alt="MANJUNATH"
               className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity duration-300 rounded-full"
               style={{ border: "1px solid rgba(59,130,246,0.25)" }}
