@@ -1,47 +1,148 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  hue: number;
+}
+
 export default function CustomCursor() {
-  const glowRef = useRef<HTMLDivElement>(null);
-  const trailRef = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const cursorInnerRef = useRef<HTMLDivElement>(null);
+  const cursorRingRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [cursorText, setCursorText] = useState("");
+  const [cursorMode, setCursorMode] = useState<"default" | "hover" | "click" | "text" | "drag">("default");
 
   useEffect(() => {
-    const glow = glowRef.current;
-    const trail = trailRef.current;
-    const ring = ringRef.current;
-    if (!glow || !trail || !ring) return;
+    const cursor = cursorRef.current;
+    const inner = cursorInnerRef.current;
+    const ring = cursorRingRef.current;
+    const canvas = canvasRef.current;
+    if (!cursor || !inner || !ring || !canvas) return;
 
-    // Only on desktop fine-pointer devices — NO touch
     const isFine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    if (!isFine) {
-      gsap.set([glow, trail, ring], { display: "none" });
-      return;
-    }
-
-    // Respect prefers-reduced-motion
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) {
-      gsap.set([glow, trail, ring], { display: "none" });
+    if (!isFine || reducedMotion) {
+      gsap.set([cursor, ring, canvas], { display: "none" });
       return;
     }
 
-    // DO NOT hide native cursor — this is critical
-    // The system cursor stays completely untouched
+    // Hide native cursor globally
+    document.documentElement.style.cursor = "none";
 
-    let mx = window.innerWidth / 2;
-    let my = window.innerHeight / 2;
-    let isHoveringInteractive = false;
-    let isHoveringCard = false;
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    // Initialise off-screen, hidden until first move
-    gsap.set([glow, trail, ring], { x: mx, y: my, xPercent: -50, yPercent: -50, opacity: 0 });
+    const onResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", onResize);
 
-    // Fade in after first move
+    let mx = -200, my = -200;
+    let curX = -200, curY = -200;
+    let ringX = -200, ringY = -200;
+    let particles: Particle[] = [];
+    let particleId = 0;
+    let isClicking = false;
+    let hue = 220; // blue base hue
+    let frameId = 0;
+
+    // Physics spring for ring
+    let vx = 0, vy = 0;
+    const SPRING_STIFFNESS = 0.15;
+    const SPRING_DAMPING = 0.75;
+
+    gsap.set(cursor, { xPercent: -50, yPercent: -50, opacity: 0 });
+    gsap.set(ring, { xPercent: -50, yPercent: -50, opacity: 0 });
+
+    const spawnParticle = (x: number, y: number, burst = false) => {
+      const count = burst ? 8 : 1;
+      for (let i = 0; i < count; i++) {
+        const angle = burst ? (i / count) * Math.PI * 2 : Math.random() * Math.PI * 2;
+        const speed = burst ? (Math.random() * 4 + 2) : (Math.random() * 1.5 + 0.3);
+        particles.push({
+          id: particleId++,
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          maxLife: burst ? 60 : 35 + Math.random() * 20,
+          size: burst ? (Math.random() * 4 + 2) : (Math.random() * 2 + 1),
+          hue: hue + (Math.random() - 0.5) * 40,
+        });
+      }
+    };
+
+    let lastParticleTime = 0;
+    const animate = (timestamp: number) => {
+      frameId = requestAnimationFrame(animate);
+
+      // Physics spring for cursor main
+      const dx = mx - curX;
+      const dy = my - curY;
+      curX += dx * 0.18;
+      curY += dy * 0.18;
+
+      // Physics spring for ring (more inertia)
+      const rdx = curX - ringX;
+      const rdy = curY - ringY;
+      vx = vx * SPRING_DAMPING + rdx * SPRING_STIFFNESS;
+      vy = vy * SPRING_DAMPING + rdy * SPRING_STIFFNESS;
+      ringX += vx;
+      ringY += vy;
+
+      gsap.set(cursor, { x: curX, y: curY });
+      gsap.set(ring, { x: ringX, y: ringY });
+
+      // Spawn trail particles
+      if (timestamp - lastParticleTime > 16 && (Math.abs(dx) > 1 || Math.abs(dy) > 1)) {
+        spawnParticle(curX, curY);
+        lastParticleTime = timestamp;
+      }
+
+      // Draw particles
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter(p => p.life > 0);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.94;
+        p.vy *= 0.94;
+        p.vy += 0.05; // gravity
+        p.life -= 1 / p.maxLife;
+
+        const alpha = Math.max(0, p.life * 0.7);
+        const size = Math.max(0, p.size * p.life);
+        const radius = Math.max(0, size * 3);
+
+        ctx.beginPath();
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+        gradient.addColorStop(0, `hsla(${p.hue}, 90%, 75%, ${alpha})`);
+        gradient.addColorStop(0.5, `hsla(${p.hue}, 80%, 60%, ${alpha * 0.5})`);
+        gradient.addColorStop(1, `hsla(${p.hue}, 70%, 50%, 0)`);
+        ctx.fillStyle = gradient;
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+    frameId = requestAnimationFrame(animate);
+
     const onFirstMove = (e: MouseEvent) => {
-      mx = e.clientX;
-      my = e.clientY;
-      gsap.to([glow, trail], { opacity: 1, duration: 0.5, overwrite: "auto" });
+      mx = e.clientX; my = e.clientY;
+      curX = mx; curY = my;
+      ringX = mx; ringY = my;
+      gsap.to([cursor, ring], { opacity: 1, duration: 0.5 });
       window.removeEventListener("mousemove", onFirstMove);
     };
     window.addEventListener("mousemove", onFirstMove);
@@ -49,170 +150,69 @@ export default function CustomCursor() {
     const onMove = (e: MouseEvent) => {
       mx = e.clientX;
       my = e.clientY;
-
-      // Trail dot — follows with ~80ms lag
-      gsap.to(trail, {
-        x: mx,
-        y: my,
-        duration: 0.12,
-        ease: "power2.out",
-        overwrite: true,
-      });
-
-      // Glow — follows with ~150ms smooth lag
-      gsap.to(glow, {
-        x: mx,
-        y: my,
-        duration: 0.25,
-        ease: "power3.out",
-        overwrite: true,
-      });
-
-      // Ring — follows with glow
-      gsap.to(ring, {
-        x: mx,
-        y: my,
-        duration: 0.3,
-        ease: "power3.out",
-        overwrite: true,
-      });
+      // Shift hue slowly as cursor moves
+      hue = 220 + (e.clientX / window.innerWidth) * 60;
     };
+    window.addEventListener("mousemove", onMove);
 
-    // Hover: interactive elements (buttons, links)
-    const onEnterInteractive = () => {
-      isHoveringInteractive = true;
-      gsap.to(glow, {
-        scale: 1.4,
-        opacity: 0.65,
-        duration: 0.3,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
-      gsap.to(trail, {
-        scale: 1.3,
-        opacity: 0.9,
-        duration: 0.2,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
-    };
-
-    const onLeaveInteractive = () => {
-      isHoveringInteractive = false;
-      if (!isHoveringCard) {
-        gsap.to(glow, {
-          scale: 1,
-          opacity: 0.45,
-          duration: 0.35,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
-        gsap.to(trail, {
-          scale: 1,
-          opacity: 0.7,
-          duration: 0.25,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
-        gsap.to(ring, {
-          opacity: 0,
-          scale: 0.8,
-          duration: 0.3,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
-      }
-    };
-
-    // Hover: mission cards — subtle ring pulse
-    const onEnterCard = () => {
-      isHoveringCard = true;
-      gsap.to(ring, {
-        opacity: 0.6,
-        scale: 1,
-        duration: 0.35,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
-      gsap.to(glow, {
-        scale: 1.3,
-        opacity: 0.55,
-        duration: 0.3,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
-    };
-
-    const onLeaveCard = () => {
-      isHoveringCard = false;
-      if (!isHoveringInteractive) {
-        gsap.to(ring, {
-          opacity: 0,
-          scale: 0.8,
-          duration: 0.3,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
-        gsap.to(glow, {
-          scale: 1,
-          opacity: 0.45,
-          duration: 0.35,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
-      }
-    };
-
-    // Mouse down / up
-    const onDown = () => {
-      gsap.to(glow, { scale: 0.8, duration: 0.12, overwrite: "auto" });
-      gsap.to(trail, { scale: 0.6, duration: 0.1, overwrite: "auto" });
+    const onDown = (e: MouseEvent) => {
+      isClicking = true;
+      setCursorMode("click");
+      spawnParticle(e.clientX, e.clientY, true);
+      gsap.to(cursor, { scale: 0.7, duration: 0.12, ease: "power2.out", overwrite: "auto" });
+      gsap.to(ring, { scale: 1.4, opacity: 0.8, duration: 0.2, ease: "power2.out", overwrite: "auto" });
     };
     const onUp = () => {
-      const targetScale = isHoveringInteractive || isHoveringCard ? 1.3 : 1;
-      gsap.to(glow, { scale: targetScale, duration: 0.25, ease: "elastic.out(1, 0.5)", overwrite: "auto" });
-      gsap.to(trail, { scale: isHoveringInteractive ? 1.3 : 1, duration: 0.2, overwrite: "auto" });
+      isClicking = false;
+      setCursorMode("default");
+      gsap.to(cursor, { scale: 1, duration: 0.4, ease: "elastic.out(1, 0.5)", overwrite: "auto" });
+      gsap.to(ring, { scale: 1, opacity: 0.6, duration: 0.35, ease: "power2.out", overwrite: "auto" });
     };
-
-    // Attach hover listeners
-    const INTERACTIVE_SELECTORS = "a, button, [role=button], input, textarea, select, label, [tabindex]";
-    const CARD_SELECTOR = "[data-mission-card]";
-
-    const bindHover = () => {
-      document.querySelectorAll<HTMLElement>(INTERACTIVE_SELECTORS).forEach(el => {
-        if (el.dataset.cursorBound) return;
-        el.dataset.cursorBound = "1";
-        el.addEventListener("mouseenter", onEnterInteractive);
-        el.addEventListener("mouseleave", onLeaveInteractive);
-      });
-      document.querySelectorAll<HTMLElement>(CARD_SELECTOR).forEach(el => {
-        if (el.dataset.cursorCardBound) return;
-        el.dataset.cursorCardBound = "1";
-        el.addEventListener("mouseenter", onEnterCard);
-        el.addEventListener("mouseleave", onLeaveCard);
-      });
-    };
-    bindHover();
-
-    // Re-bind on DOM changes
-    const mo = new MutationObserver(bindHover);
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    window.addEventListener("mousemove", onMove);
     window.addEventListener("mousedown", onDown);
     window.addEventListener("mouseup", onUp);
 
-    // Cursor leaves/enters viewport
-    const onOut = () => {
-      gsap.to([glow, trail, ring], { opacity: 0, duration: 0.3, overwrite: "auto" });
-    };
-    const onIn = () => {
-      gsap.to([glow, trail], { opacity: 1, duration: 0.3, overwrite: "auto" });
-    };
+    const onOut = () => gsap.to([cursor, ring], { opacity: 0, duration: 0.3 });
+    const onIn = () => gsap.to([cursor, ring], { opacity: 1, duration: 0.3 });
     document.addEventListener("mouseleave", onOut);
     document.addEventListener("mouseenter", onIn);
 
+    // Interactive element detection
+    const INTERACTIVE = "a, button, [role=button], input, textarea, select, label, [tabindex], [data-cursor]";
+
+    const bindHover = () => {
+      document.querySelectorAll<HTMLElement>(INTERACTIVE).forEach(el => {
+        if (el.dataset.cursorBound) return;
+        el.dataset.cursorBound = "1";
+        el.style.cursor = "none";
+
+        el.addEventListener("mouseenter", () => {
+          if (isClicking) return;
+          const label = el.dataset.cursor || "";
+          setCursorText(label);
+          setCursorMode("hover");
+          gsap.to(cursor, { scale: 1.6, duration: 0.35, ease: "power3.out", overwrite: "auto" });
+          gsap.to(ring, { scale: 1.8, opacity: 0.9, duration: 0.4, ease: "power3.out", overwrite: "auto" });
+          gsap.to(inner, { scale: 0.4, duration: 0.3, overwrite: "auto" });
+        });
+
+        el.addEventListener("mouseleave", () => {
+          setCursorText("");
+          setCursorMode("default");
+          gsap.to(cursor, { scale: 1, duration: 0.35, ease: "power3.out", overwrite: "auto" });
+          gsap.to(ring, { scale: 1, opacity: 0.6, duration: 0.35, ease: "power3.out", overwrite: "auto" });
+          gsap.to(inner, { scale: 1, duration: 0.3, overwrite: "auto" });
+        });
+      });
+    };
+
+    bindHover();
+    const mo = new MutationObserver(bindHover);
+    mo.observe(document.body, { childList: true, subtree: true });
+
     return () => {
+      document.documentElement.style.cursor = "";
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", onResize);
       window.removeEventListener("mousemove", onFirstMove);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);
@@ -220,65 +220,91 @@ export default function CustomCursor() {
       document.removeEventListener("mouseleave", onOut);
       document.removeEventListener("mouseenter", onIn);
       mo.disconnect();
-      document.querySelectorAll<HTMLElement>(INTERACTIVE_SELECTORS).forEach(el => {
-        el.removeEventListener("mouseenter", onEnterInteractive);
-        el.removeEventListener("mouseleave", onLeaveInteractive);
-        delete el.dataset.cursorBound;
-      });
-      document.querySelectorAll<HTMLElement>(CARD_SELECTOR).forEach(el => {
-        el.removeEventListener("mouseenter", onEnterCard);
-        el.removeEventListener("mouseleave", onLeaveCard);
-        delete el.dataset.cursorCardBound;
-      });
     };
   }, []);
 
+  const modeStyles = {
+    default: {
+      width: 12, height: 12,
+      background: "radial-gradient(circle, rgba(147,197,253,1) 0%, rgba(59,130,246,0.8) 60%, transparent 100%)",
+      boxShadow: "0 0 20px rgba(59,130,246,0.8), 0 0 40px rgba(59,130,246,0.4)",
+    },
+    hover: {
+      width: 12, height: 12,
+      background: "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(147,197,253,0.9) 60%, transparent 100%)",
+      boxShadow: "0 0 30px rgba(147,197,253,1), 0 0 60px rgba(59,130,246,0.6)",
+    },
+    click: {
+      width: 12, height: 12,
+      background: "radial-gradient(circle, rgba(255,200,100,1) 0%, rgba(255,150,50,0.8) 60%, transparent 100%)",
+      boxShadow: "0 0 30px rgba(255,150,50,1), 0 0 60px rgba(255,100,0,0.6)",
+    },
+    text: {
+      width: 2, height: 24,
+      borderRadius: "2px",
+      background: "rgba(147,197,253,1)",
+      boxShadow: "0 0 10px rgba(59,130,246,0.8)",
+    },
+    drag: {
+      width: 12, height: 12,
+      background: "radial-gradient(circle, rgba(167,139,250,1) 0%, rgba(139,92,246,0.8) 60%, transparent 100%)",
+      boxShadow: "0 0 30px rgba(139,92,246,1), 0 0 60px rgba(139,92,246,0.4)",
+    },
+  };
+
   return (
     <>
-      {/* Soft radial glow — largest, slowest, ~20-24px */}
+      {/* Particle canvas */}
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none fixed inset-0 z-[9990]"
+        style={{ mixBlendMode: "screen" }}
+      />
+
+      {/* Magnetic ring with physics spring */}
       <div
-        ref={glowRef}
+        ref={cursorRingRef}
         aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[9997] rounded-full will-change-transform"
+        className="pointer-events-none fixed left-0 top-0 z-[9996] will-change-transform"
         style={{
-          width: 24,
-          height: 24,
-          background: "radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(59,130,246,0.08) 40%, transparent 70%)",
+          width: 40, height: 40,
+          border: "1px solid rgba(96,165,250,0.5)",
+          borderRadius: "50%",
           transform: "translate(-50%, -50%)",
-          filter: "blur(1px)",
-          opacity: 0.45,
+          opacity: 0.6,
+          backdropFilter: "blur(1px)",
+          boxShadow: "0 0 15px rgba(59,130,246,0.2), inset 0 0 15px rgba(59,130,246,0.05)",
+          transition: "width 0.3s ease, height 0.3s ease, border-color 0.3s ease",
         }}
       />
 
-      {/* Subtle ring — visible on card/interactive hover */}
+      {/* Core cursor dot */}
       <div
-        ref={ringRef}
+        ref={cursorRef}
         aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[9998] rounded-full will-change-transform"
+        className="pointer-events-none fixed left-0 top-0 z-[9998] will-change-transform flex items-center justify-center"
         style={{
-          width: 28,
-          height: 28,
-          border: "1px solid rgba(96,165,250,0.4)",
+          borderRadius: "50%",
           transform: "translate(-50%, -50%)",
-          opacity: 0,
-          boxShadow: "0 0 6px rgba(59,130,246,0.15)",
+          ...modeStyles[cursorMode],
+          transition: "width 0.3s ease, height 0.3s ease, border-radius 0.3s ease",
         }}
-      />
+      >
+        <div ref={cursorInnerRef} className="w-1 h-1 rounded-full bg-white/80" />
+      </div>
 
-      {/* Trailing dot — small, follows with slight delay */}
-      <div
-        ref={trailRef}
-        aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[9998] rounded-full will-change-transform"
-        style={{
-          width: 4,
-          height: 4,
-          background: "rgba(147,197,253,0.8)",
-          transform: "translate(-50%, -50%)",
-          boxShadow: "0 0 6px rgba(59,130,246,0.6), 0 0 12px rgba(59,130,246,0.25)",
-          opacity: 0.7,
-        }}
-      />
+      {/* Cursor label */}
+      {cursorText && (
+        <div
+          className="pointer-events-none fixed z-[9999] text-[10px] tracking-widest uppercase text-white/80 font-medium"
+          style={{
+            left: cursorRef.current ? parseFloat(cursorRef.current.style.transform) : 0,
+            transform: "translate(20px, -50%)",
+          }}
+        >
+          {cursorText}
+        </div>
+      )}
     </>
   );
 }

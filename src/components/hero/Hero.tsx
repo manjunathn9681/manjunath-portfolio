@@ -1,28 +1,30 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import MagneticDepthPortrait from "./MagneticDepthPortrait";
+import MagneticText from "../shared/MagneticText";
+import PhysicsBackground from "../shared/PhysicsBackground";
 
 export default function Hero() {
   const zone = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const uniRef = useRef<HTMLParagraphElement>(null);
   const bioRef = useRef<HTMLParagraphElement>(null);
   const btnsRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const portraitWrapRef = useRef<HTMLDivElement>(null);
+  const titleContainerRef = useRef<HTMLDivElement>(null);
 
   // Entrance animation
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tl.fromTo(uniRef.current,    { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 0.3)
-        .fromTo(titleRef.current,  { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.0 }, 0.45)
-        .fromTo(subtitleRef.current,{ opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 0.65)
+      tl.fromTo(uniRef.current,     { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 0.3)
+        .fromTo(titleContainerRef.current, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.0 }, 0.45)
+        .fromTo(subtitleRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 0.65)
         .fromTo(portraitWrapRef.current, { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 1.2 }, 0.2)
-        .fromTo(bioRef.current,    { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 0.85)
-        .fromTo(btnsRef.current,   { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 1.0)
-        .fromTo(scrollRef.current, { opacity: 0 },         { opacity: 1, duration: 0.6 },       1.4);
+        .fromTo(bioRef.current,     { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 0.85)
+        .fromTo(btnsRef.current,    { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, 1.0)
+        .fromTo(scrollRef.current,  { opacity: 0 },         { opacity: 1, duration: 0.6 },       1.4);
     });
     return () => ctx.revert();
   }, []);
@@ -39,8 +41,13 @@ export default function Hero() {
       className="relative isolate flex flex-col items-center justify-center overflow-hidden bg-[#050505]"
       style={{ minHeight: "100svh" }}
     >
-      {/* ── Ambient background layers ────────────────────── */}
+      {/* ── Physics particle background ──────────────────── */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <PhysicsBackground nodeCount={50} interactive={false} />
+      </div>
+
+      {/* ── Ambient background layers ─────────────────────── */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-1">
         {/* Large radial blue haze */}
         <div
           className="absolute"
@@ -73,7 +80,7 @@ export default function Hero() {
 
         {/* Subtle grid */}
         <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="absolute inset-0 opacity-[0.018]"
           style={{
             backgroundImage: `
               linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
@@ -137,19 +144,9 @@ export default function Hero() {
             }}
           />
         ))}
-
-        {/* Horizontal thin lines */}
-        <div
-          className="absolute top-[38%] left-[5%] w-[10%] h-px opacity-20"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.7))" }}
-        />
-        <div
-          className="absolute top-[62%] right-[5%] w-[10%] h-px opacity-20"
-          style={{ background: "linear-gradient(270deg, transparent, rgba(59,130,246,0.7))" }}
-        />
       </div>
 
-      {/* ── Hero content ────────────────────────────────── */}
+      {/* ── Hero content ─────────────────────────────────── */}
       <div className="relative z-10 flex flex-col items-center w-full max-w-7xl mx-auto px-6 md:px-10 pt-24 pb-12">
 
         {/* Top label */}
@@ -157,31 +154,29 @@ export default function Hero() {
           ref={uniRef}
           className="mb-4 text-[10px] md:text-xs tracking-[0.45em] text-[#A1A1AA] uppercase opacity-0"
         >
-          REVA University &nbsp;·&nbsp; Computer Science & Engineering
+          REVA University &nbsp;·&nbsp; Computer Science &amp; Engineering
         </p>
 
-        {/* Name — Large centered */}
-        <h1
-          ref={titleRef}
-          className="text-center font-semibold tracking-tight leading-none opacity-0"
-          style={{
-            fontSize: "clamp(3rem, 9vw, 8rem)",
-            letterSpacing: "-0.02em",
-            background: "linear-gradient(180deg, #fff 60%, rgba(255,255,255,0.65) 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          MANJUNATH N.
-        </h1>
+        {/* Name — WATER DROPLET per-character interaction */}
+        <div ref={titleContainerRef} className="opacity-0">
+          <MagneticText
+            text="MANJUNATH N."
+            tag="h1"
+            className="text-center font-semibold tracking-tight leading-none text-white"
+            style={{
+              fontSize: "clamp(3rem, 9vw, 8rem)",
+              letterSpacing: "-0.02em",
+              display: "block",
+            }}
+          />
+        </div>
 
         {/* Subtitle */}
         <p
           ref={subtitleRef}
           className="mt-4 text-sm md:text-base tracking-[0.2em] text-[#A1A1AA] uppercase opacity-0"
         >
-          Computer Science & Engineering
+          Computer Science &amp; Engineering
         </p>
 
         {/* Portrait — center stage */}
@@ -191,11 +186,11 @@ export default function Hero() {
             className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 flex-col gap-2"
             style={{ minWidth: "140px" }}
           >
-            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1">
+            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1" data-cursor="Uni">
               <span className="text-[9px] tracking-[0.3em] text-[#3B82F6] uppercase">University</span>
               <span className="text-[11px] text-white font-medium leading-snug">REVA University</span>
             </div>
-            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1">
+            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1" data-cursor="CSE">
               <span className="text-[9px] tracking-[0.3em] text-[#3B82F6] uppercase">Branch</span>
               <span className="text-[11px] text-white font-medium leading-snug">CSE</span>
             </div>
@@ -213,11 +208,11 @@ export default function Hero() {
             className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 flex-col gap-2"
             style={{ minWidth: "140px" }}
           >
-            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1">
+            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1" data-cursor="Dev">
               <span className="text-[9px] tracking-[0.3em] text-[#3B82F6] uppercase">Focus</span>
               <span className="text-[11px] text-white font-medium leading-snug">Frontend Dev</span>
             </div>
-            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1">
+            <div className="glass rounded-xl px-4 py-3 flex flex-col gap-1" data-cursor="Stack">
               <span className="text-[9px] tracking-[0.3em] text-[#3B82F6] uppercase">Stack</span>
               <span className="text-[11px] text-white font-medium leading-snug">React · TS · GSAP</span>
             </div>
@@ -229,7 +224,7 @@ export default function Hero() {
           ref={bioRef}
           className="max-w-lg text-center text-sm md:text-base leading-relaxed text-[#A1A1AA] opacity-0"
         >
-          Computer Science & Engineering student at REVA University, documenting
+          Computer Science &amp; Engineering student at REVA University, documenting
           my technical journey through hands-on activities with Git, VS Code, and more.
         </p>
 
@@ -240,6 +235,7 @@ export default function Hero() {
         >
           <button
             id="hero-cta-work"
+            data-cursor="View"
             className="btn-magnetic relative group rounded-full px-7 py-3 text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-300"
             onClick={() => handleScroll("#projects")}
             style={{
@@ -259,6 +255,7 @@ export default function Hero() {
           </button>
           <button
             id="hero-cta-contact"
+            data-cursor="Chat"
             className="btn-magnetic rounded-full px-7 py-3 text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-300"
             onClick={() => handleScroll("#contact")}
             style={{
@@ -280,13 +277,14 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* ── Scroll indicator ────────────────────────────── */}
+      {/* ── Scroll indicator ──────────────────────────────── */}
       <div
         ref={scrollRef}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-0 cursor-pointer z-10"
         onClick={() => handleScroll("#about")}
         role="button"
         aria-label="Scroll to About"
+        data-cursor="Scroll"
       >
         <span className="text-[9px] tracking-[0.35em] text-[#A1A1AA] uppercase">Scroll</span>
         <div

@@ -26,6 +26,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Physics cursor replaces native — hidden via JS dynamically */
 }
 
 /* ── Typography tokens ───────────────────────────────── */
@@ -112,6 +113,34 @@ body {
 .animate-scroll-bounce { animation: scroll-bounce 1.8s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 12s linear infinite; }
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+/* ── Physics text glow keyframe ──────────────────────── */
+@keyframes char-glow {
+  0%, 100% { text-shadow: 0 0 0px transparent; }
+  50% { text-shadow: 0 0 20px rgba(59,130,246,0.8), 0 0 40px rgba(59,130,246,0.4); }
+}
+
+/* ── Ripple click effect ─────────────────────────────── */
+@keyframes ripple {
+  from { transform: scale(0); opacity: 0.6; }
+  to   { transform: scale(4); opacity: 0; }
+}
+
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+.ripple-container .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(59,130,246,0.35);
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  margin-left: -20px;
+  animation: ripple 0.6s linear;
+  pointer-events: none;
+}
 
 /* ── Magnetic button base ────────────────────────────── */
 .btn-magnetic {

@@ -258,12 +258,31 @@ export default function About() {
         <div aria-hidden className="absolute inset-[32%] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(37,99,235,0.18) 0%, rgba(59,130,246,0.06) 60%, transparent 80%)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", boxShadow: "0 0 40px rgba(37,99,235,0.18), inset 0 0 20px rgba(37,99,235,0.08)" }} />
 
-        {/* Core label */}
-        <div className="absolute inset-[32%] flex flex-col items-center justify-center pointer-events-none select-none">
-          <span style={{ fontSize: "clamp(0.55rem, 1.5vw, 0.8rem)", letterSpacing: "0.25em", color: "#fff", fontWeight: 700, textAlign: "center", lineHeight: 1.2 }}>
+        {/* Core label with interactive logo */}
+        <div 
+          className="absolute inset-[25%] flex flex-col items-center justify-center pointer-events-auto select-none rounded-full transition-transform duration-300 hover:scale-110 cursor-pointer"
+          style={{ 
+            background: "rgba(5,5,15,0.4)",
+            border: "1px solid rgba(59,130,246,0.3)",
+            backdropFilter: "blur(8px)",
+            boxShadow: "0 0 20px rgba(59,130,246,0.2), inset 0 0 10px rgba(59,130,246,0.1)"
+          }}
+          onMouseEnter={(e) => {
+             e.currentTarget.style.boxShadow = "0 0 30px rgba(59,130,246,0.4), inset 0 0 20px rgba(59,130,246,0.2)";
+          }}
+          onMouseLeave={(e) => {
+             e.currentTarget.style.boxShadow = "0 0 20px rgba(59,130,246,0.2), inset 0 0 10px rgba(59,130,246,0.1)";
+          }}
+        >
+          <img 
+            src={`${import.meta.env.BASE_URL}logo.jpeg`} 
+            alt="Manjunath Logo" 
+            className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full object-cover mb-2 border border-[#3B82F6]/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:border-[#3B82F6]"
+          />
+          <span style={{ fontSize: "clamp(0.5rem, 1.2vw, 0.7rem)", letterSpacing: "0.25em", color: "#fff", fontWeight: 700, textAlign: "center", lineHeight: 1.2 }}>
             MANJUNATH
           </span>
-          <span style={{ fontSize: "clamp(0.4rem, 1vw, 0.55rem)", letterSpacing: "0.3em", color: "#3B82F6", textTransform: "uppercase", marginTop: "4px", textAlign: "center" }}>
+          <span style={{ fontSize: "clamp(0.35rem, 0.9vw, 0.5rem)", letterSpacing: "0.3em", color: "#3B82F6", textTransform: "uppercase", marginTop: "2px", textAlign: "center" }}>
             TECH JOURNEY
           </span>
         </div>
