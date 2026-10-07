@@ -112,73 +112,6 @@ const ACTIVITIES = [
   },
 ];
 
-/* ─── Train SVG Component ──────────────────────────────── */
-function TrainSVG({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-      {/* Engine body */}
-      <rect x="4" y="12" width="68" height="34" rx="6" fill={`rgba(${color},0.15)`} stroke={`rgba(${color},0.7)`} strokeWidth="1.5"/>
-      {/* Engine cab */}
-      <rect x="56" y="6" width="22" height="20" rx="4" fill={`rgba(${color},0.2)`} stroke={`rgba(${color},0.8)`} strokeWidth="1.5"/>
-      {/* Chimney */}
-      <rect x="12" y="4" width="8" height="10" rx="2" fill={`rgba(${color},0.3)`} stroke={`rgba(${color},0.6)`} strokeWidth="1"/>
-      {/* Smoke puffs */}
-      <circle cx="16" cy="2" r="3" fill={`rgba(${color},0.2)`} className="animate-pulse" />
-      <circle cx="22" cy="0" r="2" fill={`rgba(${color},0.12)`} className="animate-pulse" />
-      {/* Windows */}
-      <rect x="14" y="18" width="14" height="10" rx="2" fill={`rgba(${color},0.25)`} stroke={`rgba(${color},0.5)`} strokeWidth="1"/>
-      <rect x="34" y="18" width="14" height="10" rx="2" fill={`rgba(${color},0.25)`} stroke={`rgba(${color},0.5)`} strokeWidth="1"/>
-      {/* Cab window */}
-      <rect x="60" y="10" width="14" height="10" rx="2" fill={`rgba(${color},0.4)`} stroke={`rgba(${color},0.7)`} strokeWidth="1"/>
-      {/* Headlight */}
-      <circle cx="76" cy="29" r="4" fill={`rgba(${color},0.6)`} stroke={`rgba(${color},1)`} strokeWidth="1.5"/>
-      <circle cx="76" cy="29" r="2" fill={`rgba(${color},1)`} />
-      {/* Wheels */}
-      {[14, 30, 46, 62].map(x => (
-        <g key={x}>
-          <circle cx={x} cy="46" r="8" fill={`rgba(${color},0.1)`} stroke={`rgba(${color},0.6)`} strokeWidth="1.5"/>
-          <circle cx={x} cy="46" r="3" fill={`rgba(${color},0.4)`}/>
-          <line x1={x} y1="38" x2={x} y2="54" stroke={`rgba(${color},0.4)`} strokeWidth="1"/>
-          <line x1={x-8} y1="46" x2={x+8} y2="46" stroke={`rgba(${color},0.4)`} strokeWidth="1"/>
-        </g>
-      ))}
-      {/* Connecting rods */}
-      <line x1="14" y1="46" x2="30" y2="46" stroke={`rgba(${color},0.3)`} strokeWidth="2"/>
-      <line x1="30" y1="46" x2="46" y2="46" stroke={`rgba(${color},0.3)`} strokeWidth="2"/>
-      {/* Glow effect */}
-      <rect x="4" y="12" width="68" height="34" rx="6" fill="none"
-        stroke={`rgba(${color},0.3)`} strokeWidth="4" style={{filter:`blur(4px)`}}/>
-    </svg>
-  );
-}
-
-/* ─── Wagon SVG Component ──────────────────────────────── */
-function WagonSVG({ color, label }: { color: string; label: string }) {
-  return (
-    <svg viewBox="0 0 90 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-      {/* Wagon body */}
-      <rect x="4" y="10" width="82" height="34" rx="5" fill={`rgba(${color},0.1)`} stroke={`rgba(${color},0.6)`} strokeWidth="1.5"/>
-      {/* Top stripe */}
-      <rect x="4" y="10" width="82" height="6" rx="5" fill={`rgba(${color},0.2)`}/>
-      {/* Cargo label */}
-      <text x="45" y="31" textAnchor="middle" fill={`rgba(${color},0.9)`}
-        style={{fontSize:"9px", fontFamily:"monospace", fontWeight:"bold", letterSpacing:"0.1em"}}>
-        {label}
-      </text>
-      {/* Connector left */}
-      <rect x="0" y="26" width="6" height="4" rx="1" fill={`rgba(${color},0.4)`}/>
-      {/* Connector right */}
-      <rect x="84" y="26" width="6" height="4" rx="1" fill={`rgba(${color},0.4)`}/>
-      {/* Wheels */}
-      {[18, 46, 72].map(x => (
-        <g key={x}>
-          <circle cx={x} cy="46" r="7" fill={`rgba(${color},0.08)`} stroke={`rgba(${color},0.5)`} strokeWidth="1.2"/>
-          <circle cx={x} cy="46" r="2.5" fill={`rgba(${color},0.3)`}/>
-        </g>
-      ))}
-    </svg>
-  );
-}
 
 /* ─── Train Canvas Animation ──────────────────────────── */
 function TrainCanvas({ activeIdx, onWagonClick }: {
@@ -186,7 +119,6 @@ function TrainCanvas({ activeIdx, onWagonClick }: {
   onWagonClick: (idx: number) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const trainXRef = useRef(0);
   const sparkParticles = useRef<{x:number;y:number;vx:number;vy:number;life:number;color:string}[]>([]);
 
   useEffect(() => {
@@ -208,11 +140,9 @@ function TrainCanvas({ activeIdx, onWagonClick }: {
     const TRAIN_SPEED = 0.4; // px per frame
     const WAGON_SPACING = 110;
     const TRAIN_W = 140; // engine width
-    const WAGON_W = 95;
     const TOTAL_TRAIN_W = TRAIN_W + ACTIVITIES.length * WAGON_SPACING;
 
     let rafId = 0;
-    let lastTime = 0;
     let tx = -TOTAL_TRAIN_W; // start off-screen left
 
     const spawnSparks = (x: number, y: number, color: string) => {
@@ -540,8 +470,6 @@ function TrainCanvas({ activeIdx, onWagonClick }: {
 
     const draw = (timestamp: number) => {
       rafId = requestAnimationFrame(draw);
-      const dt = Math.min(timestamp - lastTime, 32);
-      lastTime = timestamp;
 
       ctx.clearRect(0, 0, W(), H());
 
